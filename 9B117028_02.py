@@ -1,14 +1,6 @@
 import json
+import os
 
-# 讀取student.json
-with open('student.json', 'r', encoding='utf-8') as file:
-    student_data = json.load(file)
-
-# 以utf-8寫入students.json
-with open('students.json', 'w', encoding='utf-8') as file:
-    json.dump(student_data, file, ensure_ascii=False, indent=4)
-
-# 實現程式碼
 def get_student_info(student_id):
     """
     根據學號返回該學生的個人資料字典。
@@ -31,16 +23,22 @@ def add_course(student_id, course_name, course_score):
     assert course_name and course_score, "課程名稱或分數不可空白."
 
     with open('students.json', 'r', encoding='utf-8') as file:
-        students_data = json.load(file, ensure_ascii=False, indent=4)
+        students_data = json.load(file)
 
+    found = False
     for student in students_data:
         if student['student_id'] == student_id:
             student['courses'].append({'name': course_name, 'score': course_score})
-            with open('students.json', 'w', encoding='utf-8') as file:
-                json.dump(students_data, file, indent=4)
-            print("=>課程已成功新增。")
-            return
-    raise ValueError(f"發生錯誤: 學號 {student_id} 找不到.")
+            found = True
+            break
+
+    if not found:
+        raise ValueError(f"發生錯誤: 學號 {student_id} 找不到.")
+
+    with open('students.json', 'w', encoding='utf-8') as file:
+        json.dump(students_data, file, ensure_ascii=False, indent=4)
+
+    print("=>課程已成功新增。")
 
 def calculate_average_score(student_data):
     """
@@ -54,6 +52,12 @@ def calculate_average_score(student_data):
     return total_score / len(student_data['courses'])
 
 if __name__ == '__main__':
+    # 確認檔案存在性
+    student_json_path = 'students.json'
+    if not os.path.isfile(student_json_path):
+        print(f"錯誤：{student_json_path} 檔案不存在。")
+        exit()
+
     while True:
         print("*" * 50 + "選單" + "*" * 50)
         print("1. 查詢指定學號成績")
@@ -85,5 +89,5 @@ if __name__ == '__main__':
                 print("=>請輸入有效的選項。")
         except ValueError as e:
             print(f"=>發生錯誤: {e}")
-        except:
-            print("=>其它例外: 課程名稱或分數不可空白.")
+        except Exception as e:
+            print(f"=>其他例外: {e}")
